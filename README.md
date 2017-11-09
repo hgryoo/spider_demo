@@ -1,5 +1,5 @@
 # MariaDB Server & Spider Engine Test Environment
-### The Ansible Playbook Will Create 1 Frontend (Spider) Node & 2 Backend (Storage) Nodes
+### The Experiment Will Create 1 Frontend (Spider) Node & 2 Backend (Storage) Nodes
 
 #### Prerequisites
 
