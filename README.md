@@ -28,5 +28,6 @@
 
 #### Need Additional Help?
 
+* Documentation: https://mariadb.com/kb/en/library/spider/
 * Consulting: https://mariadb.com/services/consulting
 * Enterprise Architect: https://mariadb.com/services/enterprise-architect
