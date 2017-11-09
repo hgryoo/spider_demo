@@ -1,5 +1,5 @@
 # MariaDB Server & Spider Engine Test Environment
-###  1 Frontend Node, 2 Backend Nodes
+###  1 Frontend (Spider) Node, 2 Backend (Storage) Nodes
 
 #### Prerequisites
 
