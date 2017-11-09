@@ -1,6 +1,9 @@
 # MariaDB Server & Spider Engine Test Environment
 ### This Experiment Will Create 1 Frontend (Spider) Node & 2 Backend (Storage) Nodes
 
+#### Description
+After completing the following setup, you may access mysql/mariadb client on node1 and view the "test" database.  There will be a table created in that schema named "opportunities" using the spider storage engine.
+
 #### Prerequisites
 
 * [Git](https://git-scm.com/download/)
