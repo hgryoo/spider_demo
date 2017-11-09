@@ -1,0 +1,197 @@
+---
+
+- hosts: 'mysql'
+  become: true
+  become_user: root
+  
+  tasks:
+  
+  - name: Copying The THP Disable Script
+    template:
+      src: templates/thp.j2
+      dest: /etc/systemd/system/disable-thp.service
+      owner: root
+      group: root
+      mode: 0664 
+      
+  - name: Running THP Disable Script
+    service:
+      name: disable-thp
+      state: started
+      enabled: yes
+
+  - name: Disabling Selinux
+    selinux:
+      policy: targeted
+      state: disabled
+
+  - name: Adding MariaDB Repository
+    yum_repository:
+      name: MariaDB
+      description: MariaDB 10.2
+      baseurl: http://yum.mariadb.org/10.2/centos7-amd64
+      gpgkey: https://yum.mariadb.org/RPM-GPG-KEY-MariaDB
+      gpgcheck: yes
+        
+  - name: Installing Additional Packages
+    yum: 
+      name={{ item }}
+      state=present
+    with_items:
+      - epel-release
+      - nano
+      - MySQL-python
+
+  - name: Upgrading All Yum Packages
+    yum:
+      name: '*'
+      state: latest
+      
+  - name: Installing MariaDB Items
+    yum:
+      name={{ item }}
+      state=present
+    with_items:
+      - MariaDB-server
+      - MariaDB-client
+      - MariaDB-connect-engine
+      - MariaDB-tokudb-engine
+      - MariaDB-rocksdb-engine
+
+  - name: Installing Percona Repo
+    yum:
+      name: http://www.percona.com/downloads/percona-release/redhat/0.1-4/percona-release-0.1-4.noarch.rpm
+      state: present
+
+  - name: Installing Percona Items
+    yum:
+      name={{ item }}
+      state=present
+    with_items:
+      - percona-xtrabackup-24
+      - percona-toolkit
+       
+  - name: Creating Server Config
+    template:
+      src: templates/server.j2
+      dest: /etc/my.cnf.d/server.cnf
+      owner: root
+      group: root
+      mode: 0644   
+
+  - name: Creating MySQL log folder
+    file:
+      path: /var/log/mysql
+      state: directory
+      mode: 0755
+      owner: mysql
+      group: mysql
+
+  - name: Starting MySQL
+    service: 
+      name: mysql
+      state: restarted
+  
+  - name: Removing Anonymous MySQL Account
+    mysql_user:
+      name: ''
+      host_all: yes
+      state: absent
+
+  - name: "Removing root@{{ ansible_nodename }}"
+    mysql_user:
+      name: root
+      host: "{{ ansible_nodename }}"
+      state: absent
+
+  - name: "Removeing root@::1"
+    mysql_user:
+      name: root
+      host: "::1"
+      state: absent
+
+  - name: Add DBA User
+    mysql_user:
+      name: "{{ dba_user }}"
+      host: 'localhost'
+      password: "{{ dba_pass }}"
+      update_password: on_create
+      priv: '*.*:ALL,GRANT'
+      state: present  
+
+  - name: Add DBA User
+    mysql_user:
+      name: "{{ dba_user }}"
+      host: '127.0.0.1'
+      password: "{{ dba_pass }}"
+      update_password: on_create
+      priv: '*.*:ALL,GRANT'
+      state: present  
+
+  - name: Add DBA User
+    mysql_user:
+      name: "{{ dba_user }}"
+      host: '10.%'
+      password: "{{ dba_pass }}"
+      update_password: on_create
+      priv: '*.*:ALL,GRANT'
+      state: present
+
+  - name: Copying Plugins Script
+    copy: 
+      src: sql/plugins.sql
+      dest: /tmp
+     
+  - name: Loading Plugins          
+    mysql_db:
+      state: import
+      name: all
+      target: /tmp/plugins.sql
+      
+- hosts: 'node2,node3'
+  become: true
+  become_user: root
+  
+  tasks:
+
+  - name: Copying Backend Script
+    copy: 
+      src: sql/spider_backend.sql
+      dest: /tmp
+     
+  - name: Creating Backend Tables          
+    mysql_db:
+      state: import
+      name: all
+      target: /tmp/spider_backend.sql
+    ignore_errors: yes      
+ 
+- hosts: 'node1'
+  become: true
+  become_user: root
+  
+  tasks:
+
+  - name: Activating Spider Plugin
+    mysql_db:
+      state: import
+      name: all
+      target: /usr/share/mysql/install_spider.sql
+
+  - name: Copying Spider Frontend Script
+    copy: 
+      src: sql/spider_frontend.sql
+      dest: /tmp
+
+  - name: Copying Mock Data To Server
+    copy: 
+      src: sql/mock_data.csv
+      dest: /tmp   
+      
+  - name: Running Spider Frontend Script    
+    mysql_db:
+      state: import
+      name: all
+      target: /tmp/spider_frontend.sql
+    ignore_errors: yes
+            
