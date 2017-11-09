@@ -1,4 +1,4 @@
-# MariaDB 10.2 Spider Engine Test Environment
+# MariaDB Server & Spider Engine Test Environment
 ###  1 Frontend Node, 2 Backend Nodes
 
 #### Prerequisites
