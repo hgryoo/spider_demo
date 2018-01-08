@@ -148,7 +148,7 @@
       name: all
       target: /tmp/plugins.sql
       
-- hosts: 'node2,node3'
+- hosts: 'node2,node3,node4'
   become: true
   become_user: root
   
