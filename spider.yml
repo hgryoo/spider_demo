@@ -6,32 +6,18 @@
   
   tasks:
   
-  - name: Copying The THP Disable Script
-    template:
-      src: templates/thp.j2
-      dest: /etc/systemd/system/disable-thp.service
-      owner: root
-      group: root
-      mode: 0664 
-      
-  - name: Running THP Disable Script
-    service:
-      name: disable-thp
-      state: started
-      enabled: yes
-
   - name: Disabling Selinux
     selinux:
       policy: targeted
-      state: disabled
+      state: permissive
 
-  - name: Adding MariaDB Repository
-    yum_repository:
-      name: MariaDB
-      description: MariaDB 10.2
-      baseurl: http://yum.mariadb.org/10.2/centos7-amd64
-      gpgkey: https://yum.mariadb.org/RPM-GPG-KEY-MariaDB
-      gpgcheck: yes
+  - name: Getting MariaDB Repos
+    get_url:
+      url: https://downloads.mariadb.com/MariaDB/mariadb_repo_setup
+      dest: /tmp/mariadb_repo_setup
+      
+  - name: Activating MariaDB Repos
+    shell: $(which bash) /tmp/mariadb_repo_setup --mariadb-server-version={{ mariadb_version }} --mariadb-maxscale-version={{ maxscale_version }}
         
   - name: Installing Additional Packages
     yum: 
@@ -54,22 +40,6 @@
     with_items:
       - MariaDB-server
       - MariaDB-client
-      - MariaDB-connect-engine
-      - MariaDB-tokudb-engine
-      - MariaDB-rocksdb-engine
-
-  - name: Installing Percona Repo
-    yum:
-      name: http://www.percona.com/downloads/percona-release/redhat/0.1-4/percona-release-0.1-4.noarch.rpm
-      state: present
-
-  - name: Installing Percona Items
-    yum:
-      name={{ item }}
-      state=present
-    with_items:
-      - percona-xtrabackup-24
-      - percona-toolkit
        
   - name: Creating Server Config
     template:
@@ -136,17 +106,6 @@
       update_password: on_create
       priv: '*.*:ALL,GRANT'
       state: present
-
-  - name: Copying Plugins Script
-    copy: 
-      src: sql/plugins.sql
-      dest: /tmp
-     
-  - name: Loading Plugins          
-    mysql_db:
-      state: import
-      name: all
-      target: /tmp/plugins.sql
       
 - hosts: 'node2,node3,node4'
   become: true

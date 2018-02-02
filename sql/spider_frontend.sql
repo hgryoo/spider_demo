@@ -11,7 +11,7 @@ DROP TABLE IF EXISTS `test`.`opportunities`;
 
 TRUNCATE TABLE `mysql`.`spider_tables`;
 
-SET SESSION binlog_format = 'MIXED'; ## TEMPORARY FIX FOR MDEV-14019
+SET SESSION binlog_format = 'MIXED'; ## TEMPORARY FIX FOR https://jira.mariadb.org/browse/MDEV-14019
 
 CREATE TABLE `test`.`opportunities` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -24,11 +24,11 @@ CREATE TABLE `test`.`opportunities` (
   PRIMARY KEY (`id`,`accountName`)
 ) ENGINE=SPIDER AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 COMMENT='wrapper "mysql", table "opportunities"'
  PARTITION BY KEY (`accountName`)
-(PARTITION `pt1` COMMENT = 'srv "backend1 backend2"' ENGINE = SPIDER,
- PARTITION `pt2` COMMENT = 'srv "backend2 backend3"' ENGINE = SPIDER,
- PARTITION `pt3` COMMENT = 'srv "backend3 backend1"' ENGINE = SPIDER);
+(PARTITION `pt1` COMMENT = 'srv "backend1"' ENGINE = SPIDER,
+ PARTITION `pt2` COMMENT = 'srv "backend2"' ENGINE = SPIDER,
+ PARTITION `pt3` COMMENT = 'srv "backend3"' ENGINE = SPIDER);
  
-SET SESSION binlog_format = 'ROW'; ## TEMPORARY FIX FOR MDEV-14019
+SET SESSION binlog_format = 'ROW'; ## TEMPORARY FIX FOR https://jira.mariadb.org/browse/MDEV-14019
 
 TRUNCATE `test`.`opportunities`;
 

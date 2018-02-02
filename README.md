@@ -1,5 +1,5 @@
 # MariaDB Server & Spider Engine Test Environment
-### This Experiment Will Create 1 Frontend (Spider) Node & 2 Backend (Storage) Nodes
+### This Experiment Will Create 1 Frontend (Spider) Node & 3 Backend (Storage) Nodes
 
 #### Description
 After completing the following setup, you may access mysql/mariadb client on node1 and view the "test" database.  There will be a table created in that schema named "opportunities" using the spider storage engine and partitioned by range.
@@ -23,7 +23,7 @@ After completing the following setup, you may access mysql/mariadb client on nod
 
 #### MariaDB Node Access
 
-* `vagrant ssh node1` or `vagrant ssh node2` or `vagrant ssh node3`
+* `vagrant ssh node#`
 
 ####  Clean Up
 
