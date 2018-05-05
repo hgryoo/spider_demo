@@ -2,7 +2,7 @@
 ### This Experiment Will Create 1 Frontend (Spider) Node & 3 Backend (Storage) Nodes
 
 #### Description
-After completing the following setup, you may access the spider database via mysql client on node1 and view the "world" schema.  Tables are stored on separate backend servers to demonstrate horizontal sharding.
+After completing the following setup, you may access the spider database via the mysql client on node1 and view the "world" schema.  Tables are stored on separate backend servers to demonstrate horizontal sharding.
 
 #### Prerequisites
 
