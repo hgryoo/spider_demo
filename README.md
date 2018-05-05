@@ -2,7 +2,7 @@
 ### This Experiment Will Create 1 Frontend (Spider) Node & 3 Backend (Storage) Nodes
 
 #### Description
-After completing the following setup, you may access mysql/mariadb client on node1/mariadb1 and view the "world" database.  Tables are stored on separate backend servers to demonstrate horizontal sharding.
+After completing the following setup, you may access via mysql client on node1 and view the "world" database.  Tables are stored on separate backend servers to demonstrate horizontal sharding.
 
 #### Prerequisites
 
@@ -21,9 +21,9 @@ After completing the following setup, you may access mysql/mariadb client on nod
 * `vagrant up`
 * `ansible-playbook -i inventory provision.yml`
 
-#### MariaDB Node Access
+#### MariaDB Spider Node Access
 
-* `vagrant ssh node#`
+* `vagrant ssh node1`
 
 ####  Clean Up
 
