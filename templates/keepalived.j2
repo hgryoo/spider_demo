@@ -1,0 +1,40 @@
+vrrp_script chk_maxscale {
+    script "/etc/keepalived/chk_maxscale"
+    interval 1
+}
+
+vrrp_instance maxscale_pool {
+    state BACKUP
+    interface enp0s8
+    virtual_router_id 50
+{% if ansible_nodename == 'maxscale1' %}
+    priority 150
+{% else %}
+    priority 100
+{% endif %}
+    track_interface {
+    	enp0s8
+    }
+
+{% if ansible_nodename == 'maxscale1' %}
+    track_script {
+    	chk_maxscale
+    }
+
+    unicast_src_ip {{ hostvars.maxscale1.ansible_host }}
+    	unicast_peer {
+            {{ hostvars.maxscale2.ansible_host }}
+        }
+{% else %}
+    unicast_src_ip {{ hostvars.maxscale2.ansible_host }}
+    	unicast_peer {
+            {{ hostvars.maxscale1.ansible_host }}
+        }
+
+    notify /etc/keepalived/notify.sh
+{% endif %}
+
+    virtual_ipaddress {
+    	{{ vip }} dev enp0s8
+    }
+}

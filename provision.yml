@@ -1,0 +1,221 @@
+---
+
+- hosts: "mariadb"
+  become: true
+  become_user: root
+
+  tasks:
+
+  - name: "Setting SELINUX Permissive"
+    selinux:
+      policy: targeted
+      state: permissive
+
+  - name: "Removing Any Previous MariaDB Repos"
+    file:
+      path: /etc/yum.repos.d/mariadb.repo
+      state: absent
+
+  - name: "Getting New MariaDB Repos"
+    get_url:
+      url: https://downloads.mariadb.com/MariaDB/mariadb_repo_setup
+      dest: /tmp/mariadb_repo_setup
+
+  - name: "Activating New MariaDB Repos"
+    shell: $(which bash) /tmp/mariadb_repo_setup --mariadb-server-version={{ mariadb_version }} --mariadb-maxscale-version={{ maxscale_version }}
+
+  - name: "Installing Additional Packages"
+    yum:
+      name={{ item }}
+      state=present
+    with_items:
+      - epel-release
+      - nano
+      - MySQL-python
+
+  - name: "Upgrading All Yum Packages"
+    yum:
+      name: '*'
+      state: latest
+
+  - name: "Installing MariaDB Items"
+    yum:
+      name={{ item }}
+      state=present
+    with_items:
+      - MariaDB-server
+      - MariaDB-client
+
+  - name: "Creating MySQL Log Folder"
+    file:
+      path: /var/log/mysql
+      state: directory
+      mode: 0755
+      owner: mysql
+      group: mysql
+
+  - name: "Creating Server Configuration"
+    template:
+      src: templates/general.j2
+      dest: /etc/my.cnf.d/server.cnf
+      owner: root
+      group: root
+      mode: 0644
+
+  - name: "Installing/Updating timeouts.conf Template"
+    template:
+      src: templates/timeouts.j2
+      dest: /etc/systemd/system/mariadb.service.d/timeouts.conf
+
+  - name: "Reloading Systemd"
+    command: systemctl daemon-reload
+
+  - name: "Starting MySQL"
+    service:
+      name: mysql
+      state: restarted
+
+  - name: "Removing Anonymous MySQL Account"
+    mysql_user:
+      name: ''
+      host_all: yes
+      state: absent
+
+  - name: "Removing root@{{ ansible_nodename }}"
+    mysql_user:
+      name: root
+      host: '{{ ansible_nodename }}'
+      state: absent
+
+  - name: "Removing root@::1"
+    mysql_user:
+      name: root
+      host: '::1'
+      state: absent
+
+  - name: "Removing 'test' Database"
+    mysql_db:
+      name: test
+      state: absent
+
+  - name: "Creating 'world' Database"
+    mysql_db:
+      name: world
+      state: present
+
+  - name: "Adding dba_user@localhost"
+    mysql_user:
+      name: '{{ dba_user }}'
+      host: 'localhost'
+      password: '{{ dba_pass }}'
+      update_password: on_create
+      priv: '*.*:ALL,GRANT'
+      state: present
+
+  - name: "Adding dba_user@127.0.0.1"
+    mysql_user:
+      name: '{{ dba_user }}'
+      host: '127.0.0.1'
+      password: '{{ dba_pass }}'
+      update_password: on_create
+      priv: '*.*:ALL,GRANT'
+      state: present
+
+  - name: "Adding dba_user@10.%"
+    mysql_user:
+      name: '{{ dba_user }}'
+      host: '10.%'
+      password: '{{ dba_pass }}'
+      update_password: on_create
+      priv: '*.*:ALL,GRANT'
+      state: present
+
+  - name: "Adding sst_user@10.%"
+    mysql_user:
+      name: '{{ sst_user }}'
+      password: '{{ sst_pass }}'
+      host: '10.%'
+      priv: '*.*:RELOAD,LOCK TABLES,REPLICATION CLIENT,CREATE TABLESPACE,PROCESS,SUPER,CREATE,INSERT,SELECT'
+      state: present
+
+  - name: "Adding sst_user@localhost"
+    mysql_user:
+      name: '{{ sst_user }}'
+      password: '{{ sst_pass }}'
+      host: 'localhost'
+      priv: '*.*:RELOAD,LOCK TABLES,REPLICATION CLIENT,CREATE TABLESPACE,PROCESS,SUPER,CREATE,INSERT,SELECT'
+      state: present
+
+- hosts: "mariadb2"
+  become: true
+  become_user: root
+
+  tasks:
+
+  - name: "Copying Backend Script"
+    copy:
+      src: sql/world_backend1.sql
+      dest: /tmp
+
+  - name: "Running Backend Script"
+    mysql_db:
+      name: world
+      state: import
+      target: /tmp/world_backend1.sql
+
+- hosts: "mariadb3"
+  become: true
+  become_user: root
+
+  tasks:
+
+  - name: "Copying Backend Script"
+    copy:
+      src: sql/world_backend2.sql
+      dest: /tmp
+
+  - name: "Running Backend Script"
+    mysql_db:
+      name: world
+      state: import
+      target: /tmp/world_backend2.sql
+
+- hosts: "mariadb4"
+  become: true
+  become_user: root
+
+  tasks:
+
+  - name: "Copying Backend Script"
+    copy:
+      src: sql/world_backend3.sql
+      dest: /tmp
+
+  - name: "Running Backend Script"
+    mysql_db:
+      name: world
+      state: import
+      target: /tmp/world_backend3.sql
+
+- hosts: "mariadb1"
+  become: true
+  become_user: root
+
+  tasks:
+
+  - name: "Activating Spider Plugin"
+    mysql_db:
+      state: import
+      name: all
+      target: /usr/share/mysql/install_spider.sql
+
+  - name: "Copying Frontend Script"
+    copy:
+      src: sql/world_frontend.sql
+      dest: /tmp
+
+  - name: "Running Frontend Script"
+    mysql_db:
+      name: world
+      state: import
+      target: /tmp/world_frontend.sql

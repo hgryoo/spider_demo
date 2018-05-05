@@ -1,5 +1,3 @@
-### Ansible Managed - {{lookup('pipe','date +%m/%d/%Y_%I:%M:%S_%p')}}
-
 ###############################################################
 # General Settings
 ###############################################################
@@ -22,19 +20,17 @@ tmpdir                          	= /tmp
 socket                          	= /var/lib/mysql/mysql.sock
 port                            	= 3306
 pid-file                        	= /var/lib/mysql/mysql.pid
-server_id                       	= {{ ansible_host|regex_replace("\.", "" )}}
-gtid_domain_id                  	= {{ ansible_host|regex_replace("\.", "") }}
+server_id                       	= {{ vars['ansible_' + ethernet_interface]['ipv4']['address']|regex_replace("\.", "" )}}
+gtid_domain_id                  	= {{ vars['ansible_' + ethernet_interface]['ipv4']['address']|regex_replace("\.", "" )}}
 character_set_server            	= utf8
 collation_server                	= utf8_general_ci
 init_connect                    	= 'SET NAMES utf8'
 user                            	= mysql
-ignore-db-dir                   	= .rocksdb, lost+found
+ignore_db_dirs                  	= lost+found
 default_storage_engine          	= InnoDB
 #enforce_storage_engine          	= InnoDB
 userstat                        	= ON
-explicit_defaults_for_timestamp 	= 1
 feedback                        	= ON
-log_bin_trust_function_creators 	= 1
 performance_schema
 event_scheduler
 skip_name_resolve
@@ -46,43 +42,27 @@ symbolic_links                  	= 0
 myisam_recover_options          	= FORCE,BACKUP
 max_allowed_packet              	= 32M
 max_connect_errors              	= 1000000
+log_bin_trust_function_creators 	= ON
+explicit_defaults_for_timestamp 	= ON
 #ssl_ca                          	=
 #ssl_key                         	=
 #ssl_cert                        	=
-
-#################################################################
-## Encryption Settings
-#################################################################
-#plugin-load-add                  	= file_key_management.so
-#file_key_management
-#file_key_management_filename     	= /etc/my.cnf.d/keys.txt
-#innodb_encrypt_tables            	= FORCE
-#innodb_tablespaces_encryption
-#innodb_encrypt_log               	= ON
-#innodb_encryption_threads       	= 4
-#encrypt_tmp_files                	= ON
-#encrypt_binlog                   	= ON
 
 ################################################################
 # Caches, Buffers & Connections
 ################################################################
 query_cache_type                	= 0
 query_cache_size                	= 0
-thread_cache_size               	= 50
 thread_handling                 	= pool-of-threads
 open_files_limit                	= 65535
 table_definition_cache          	= 4096
-back_log                        	= 200
 table_open_cache                	= 4096
 thread_pool_size                	= {{ ansible_processor_vcpus }}
 max_connections                 	= 500
 wait_timeout                    	= 600
 interactive_timeout             	= 600
-max_connect_errors              	= 1000000
-join_buffer_size                	= 16M
-key_buffer_size                 	= 16M
-tmp_table_size                  	= {{ (ansible_memtotal_mb/512)|round|int }}M
-max_heap_table_size             	= {{ (ansible_memtotal_mb/512)|round|int }}M
+tmp_table_size                  	= {{ [(ansible_memtotal_mb/512),16]|max|round|int }}M
+max_heap_table_size             	= {{ [(ansible_memtotal_mb/512),16]|max|round|int }}M
 
 ################################################################
 # MySQL Logs
@@ -92,32 +72,31 @@ binlog_row_image                	= FULL
 log_bin                         	= /var/log/mysql/mariadb-bin
 log_bin_index                   	= /var/log/mysql/mariadb-bin.index
 expire_logs_days                	= 3
-sync_binlog                     	= 1
 log_error                       	= /var/log/mysql/mariadb-error.log
-slow_query_log                  	= 1
+slow_query_log                  	= ON
 slow_query_log_file             	= /var/log/mysql/mariadb-slow.log
-log_queries_not_using_indexes   	= 0
+log_queries_not_using_indexes   	= OFF
 log_warnings                    	= 2
-log_slow_verbosity              	= query_plan
+log_slow_verbosity              	= query_plan,innodb,explain
 long_query_time                 	= 5
 
 ################################################################
 # InnoDB Variables
 ################################################################
-innodb_file_per_table           	= 1
-innodb_buffer_pool_size         	= {{ [(ansible_memtotal_mb/1024 * 0.66),1]|max|round|int }}G
-innodb_buffer_pool_instances    	= {{ [(ansible_memtotal_mb/1024 * 0.66),1]|max|round|int }}
-innodb_page_cleaners           		= {{ [(ansible_memtotal_mb/1024 * 0.66),64]|min|round|int }}
-innodb_flush_log_at_trx_commit  	= 0
+innodb_file_per_table           	= ON
+innodb_buffer_pool_size         	= {{ (ansible_memtotal_mb/1024 * 0.66)|round|int }}G
+innodb_page_cleaners           		= {{ [[(ansible_memtotal_mb/1024 * 0.66),4]|max,64]|min|round|int }}
+innodb_flush_log_at_trx_commit  	= 1
 innodb_flush_method             	= O_DIRECT
-innodb_log_files_in_group       	= {{ [(((ansible_memtotal_mb/1024 * 0.66)/2)+1),2]|max|round|int }}
-innodb_log_buffer_size          	= 32M
+innodb_log_files_in_group       	= {{ [[(((ansible_memtotal_mb/1024 * 0.66)/2)+1),2]|max,100]|min|round|int }}
+innodb_log_buffer_size          	= 16M
 innodb_log_file_size            	= 1G
 innodb_autoinc_lock_mode        	= 2
 innodb_rollback_on_timeout      	= ON
-innodb_stats_on_metadata        	= 0
 innodb_thread_concurrency       	= {{ (ansible_processor_vcpus * 2) }}
-innodb_force_primary_key        	= 0
+innodb_force_primary_key        	= ON
+innodb_print_all_deadlocks      	= ON
+innodb_defragment               	= ON
 
 ################################################################
 # MariaDB Optimizer Switches
@@ -159,54 +138,69 @@ optimizer_switch                	= condition_pushdown_for_derived=on
 # MariaDB Audit
 ################################################################
 plugin_load                     	= "server_audit.so"
-server_audit_logging            	= 1
+server_audit_logging            	= ON
 server_audit_output_type        	= file
 server_audit_file_path          	= /var/log/mysql/mariadb-audit.log
 server_audit_events	            	= query_ddl
 
 ################################################################
+# Encryption Settings
+################################################################
+{% if encryption_on == 'true' %}
+{% include 'encryption.j2' %}
+{% raw %}
+{% endraw %}
+{% else %}
+{% filter comment('plain',prefix='',postfix='') %}
+{% include 'encryption.j2' %}
+{% endfilter %}
+{% endif %}
+
+################################################################
 # Standard Replication Settings
 ################################################################
-#log_slave_updates               	= 1
-#read_only                       	= ON
-#relay_log                       	= /var/log/mysql/mariadb-relay
-#relay_log_index                 	= /var/log/mysql/mariadb-relay.index
-#relay-log-info-file             	= /var/log/mysql/mariadb-relay.info
-report_host                     	= {{ ansible_nodename }}
-#slave_parallel_mode             	= conservative
-#slave_domain_parallel_threads   	= 2
-#slave_parallel_threads          	= 2
-sysdate_is_now                  	= 1
+{% if replication_on == 'true' %}
+{% include 'replication.j2' %}
+{% raw %}
+{% endraw %}
+{% else %}
+{% filter comment('plain',prefix='',postfix='') %}
+{% include 'replication.j2' %}
+{% endfilter %}
+{% endif %}
 
-#################################################################
-## Galera Settings
-#################################################################
-#wsrep_on                        	= ON
-#wsrep_cluster_address           	= gcomm://
-#wsrep_provider                  	= /usr/lib64/galera/libgalera_smm.so
-#wsrep_provider_options          	= "gcs.fc_limit=32;gcache.size=2G;gcache.recover=yes"
-#wsrep_slave_threads             	= {{ ansible_processor_vcpus }}
-#wsrep_cluster_name              	= {{ cluster_name }}
-#wsrep_node_name                 	= {{ ansible_nodename }}
-#wsrep_node_address              	= {{ ansible_host }}
-#wsrep_forced_binlog_format      	= ROW
-#wsrep_sst_method                	= xtrabackup-v2
-#wsrep_sst_auth                  	= {{ sst_user }}:{{ sst_pass }}
+################################################################
+# Galera Settings
+################################################################
+{% if galera_on == 'true' %}
+{% include 'galera.j2' %}
+{% raw %}
+{% endraw %}
+{% else %}
+{% filter comment('plain',prefix='',postfix='') %}
+{% include 'galera.j2' %}
+{% endfilter %}
+{% endif %}
 
-#################################################################
-## Galera SST Settings
-#################################################################
-#[sst]
-#streamfmt                       	= xbstream
-#transferfmt                     	= socat
-#compressor                      	= pigz
-#decompressor                    	= "pigz -dc"
-#inno-apply-opts                 	= "--use-memory=1G"
+################################################################
+# Galera SST Settings
+################################################################
+{% if galera_on == 'true' %}
+{% include 'sst.j2' %}
+{% raw %}
+{% endraw %}
+{% else %}
+{% filter comment('plain',prefix='',postfix='') %}
+{% include 'sst.j2' %}
+{% endfilter %}
+{% endif %}
 
-#################################################################
-## XtraBackup Settings
-#################################################################
-#[xtrabackup]
-#user                            	= {{ sst_user }}
-#password                        	= {{ sst_pass }}
-#socket                          	= /var/lib/mysql/mysql.sock
+################################################################
+# XtraBackup Settings
+################################################################
+[xtrabackup]
+user                            	= {{ sst_user }}
+password                        	= {{ sst_pass }}
+socket                          	= /var/lib/mysql/mysql.sock
+{% raw %}
+{% endraw %}

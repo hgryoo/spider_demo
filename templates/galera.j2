@@ -1,0 +1,11 @@
+wsrep_on                        	= ON
+wsrep_cluster_address           	= gcomm://{{ hostvars.mariadb1.ansible_host }},{{ hostvars.mariadb2.ansible_host }},{{ hostvars.mariadb3.ansible_host }}
+wsrep_provider                  	= /usr/lib64/galera/libgalera_smm.so
+wsrep_provider_options          	= "gcs.fc_limit=32;gcache.size=2G;gcache.recover=yes"
+wsrep_slave_threads             	= {{ ansible_processor_vcpus }}
+wsrep_cluster_name              	= {{ galera_name }}
+wsrep_node_name                 	= {{ ansible_nodename }}
+wsrep_node_address              	= {{ vars['ansible_' + ethernet_interface]['ipv4']['address'] }}
+wsrep_forced_binlog_format      	= ROW
+wsrep_sst_method                	= xtrabackup-v2
+wsrep_sst_auth                  	= {{ sst_user }}:{{ sst_pass }}
