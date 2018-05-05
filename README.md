@@ -2,9 +2,7 @@
 ### This Experiment Will Create 1 Frontend (Spider) Node & 3 Backend (Storage) Nodes
 
 #### Description
-After completing the following setup, you may access the spider database via the mysql client on node1 and view the "world" schema.  You may also connect via your favorite GUI by connection to IP: **10.10.10.10** with username: **dba** and password: **demo_password** 
-
-Tables are stored on separate backend servers to demonstrate horizontal sharding.
+After completing the following setup, you may access the spider database via the mysql client on node1 and view the "world" schema.  You may also connect via your favorite GUI by directly from your host machine by connecting to IP: **10.10.10.10** with username: **dba** and password: **demo_password** . Tables are stored on separate backend servers to demonstrate horizontal sharding.
 
 #### Prerequisites
 
