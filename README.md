@@ -2,7 +2,7 @@
 ### This Experiment Will Create 1 Frontend (Spider) Node & 3 Backend (Storage) Nodes
 
 #### Description
-After completing the following setup, you may access mysql/mariadb client on node1 and view the "test" database.  There will be a table created in that schema named "opportunities" using the spider storage engine and partitioned by range.
+After completing the following setup, you may access mysql/mariadb client on node1/mariadb1 and view the "world" database.  Tables are stored on separate backend servers to demonstrate horizontal sharding.
 
 #### Prerequisites
 
@@ -10,7 +10,7 @@ After completing the following setup, you may access mysql/mariadb client on nod
 * [Vagrant 2.0.0+](https://www.vagrantup.com/downloads.html)
 * [Virtualbox 5.1+](https://www.virtualbox.org/wiki/Downloads)
 * Ansible
-  * [Ansible 2.4+ For MacOS/Linux](http://docs.ansible.com/ansible/latest/intro_installation.html) 
+  * [Ansible 2.4+ For MacOS/Linux](http://docs.ansible.com/ansible/latest/intro_installation.html)
   * [Ansible 2.4+ For Windows](https://www.jeffgeerling.com/blog/2017/using-ansible-through-windows-10s-subsystem-linux)
 
 #### Setup
