@@ -5,7 +5,7 @@ vrrp_script chk_maxscale {
 
 vrrp_instance maxscale_pool {
     state BACKUP
-    interface enp0s8
+    interface {{ ethernet_interface }}
     virtual_router_id 50
 {% if ansible_nodename == 'maxscale1' %}
     priority 150
@@ -13,7 +13,7 @@ vrrp_instance maxscale_pool {
     priority 100
 {% endif %}
     track_interface {
-    	enp0s8
+    	{{ ethernet_interface }}
     }
 
 {% if ansible_nodename == 'maxscale1' %}
@@ -35,6 +35,6 @@ vrrp_instance maxscale_pool {
 {% endif %}
 
     virtual_ipaddress {
-    	{{ vip }} dev enp0s8
+    	{{ vip }} dev {{ ethernet_interface }}
     }
 }
