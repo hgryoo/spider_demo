@@ -19,7 +19,7 @@ After completing the following setup, you may access mysql/mariadb client on nod
 * cd to cloned folder
 * `vagrant plugin install vagrant-vbguest`
 * `vagrant up`
-* `ansible-playbook -i hosts spider.yml`
+* `ansible-playbook -i inventory provision.yml`
 
 #### MariaDB Node Access
 
