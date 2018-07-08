@@ -28,7 +28,7 @@ init_connect                    	= 'SET NAMES utf8'
 user                            	= mysql
 ignore_db_dirs                  	= lost+found
 default_storage_engine          	= InnoDB
-enforce_storage_engine          	= InnoDB
+#enforce_storage_engine          	= InnoDB
 userstat                        	= ON
 feedback                        	= ON
 performance_schema
@@ -85,7 +85,7 @@ long_query_time                 	= 5
 ################################################################
 innodb_file_per_table           	= ON
 innodb_buffer_pool_size         	= {{ (ansible_memtotal_mb/1024 * 0.66)|round|int }}G
-innodb_page_cleaners           		= {{ [[(ansible_memtotal_mb/1024 * 0.66),4]|max,64]|min|round|int }}
+innodb_page_cleaners            	= {{ [[(ansible_memtotal_mb/1024 * 0.66),4]|max,64]|min|round|int }}
 innodb_flush_log_at_trx_commit  	= 1
 innodb_flush_method             	= O_DIRECT
 innodb_log_files_in_group       	= {{ [[(((ansible_memtotal_mb/1024 * 0.66)/2)+1),2]|max,100]|min|round|int }}
@@ -97,6 +97,12 @@ innodb_thread_concurrency       	= {{ (ansible_processor_vcpus * 2) }}
 innodb_force_primary_key        	= ON
 innodb_print_all_deadlocks      	= ON
 innodb_defragment               	= ON
+
+################################################################
+# RocksDB Variables
+################################################################
+rocksdb_bulk_load               	= ON
+rocksdb_max_row_locks           	= 10000
 
 ################################################################
 # MariaDB Optimizer Switches
