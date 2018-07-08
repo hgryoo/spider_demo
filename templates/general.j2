@@ -101,7 +101,8 @@ innodb_defragment               	= ON
 ################################################################
 # RocksDB Variables
 ################################################################
-rocksdb_bulk_load               	= ON
+plugin_load                     	= ha_rocksdb.so
+rocksdb_bulk_load               	= 1
 rocksdb_max_row_locks           	= 10000
 
 ################################################################
@@ -143,7 +144,7 @@ optimizer_switch                	= condition_pushdown_for_derived=on
 ################################################################
 # MariaDB Audit
 ################################################################
-plugin_load                     	= "server_audit.so"
+plugin_load_add                 	= "server_audit.so"
 server_audit_logging            	= ON
 server_audit_output_type        	= file
 server_audit_file_path          	= /var/log/mysql/mariadb-audit.log
