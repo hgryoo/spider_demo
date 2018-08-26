@@ -7,7 +7,7 @@ vrrp_instance maxscale_pool {
     state BACKUP
     interface {{ ethernet_interface }}
     virtual_router_id 50
-{% if ansible_nodename == 'maxscale1' %}
+{% if inventory_hostname == 'maxscale1' %}
     priority 150
 {% else %}
     priority 100
@@ -16,7 +16,7 @@ vrrp_instance maxscale_pool {
     	{{ ethernet_interface }}
     }
 
-{% if ansible_nodename == 'maxscale1' %}
+{% if inventory_hostname == 'maxscale1' %}
     track_script {
     	chk_maxscale
     }
