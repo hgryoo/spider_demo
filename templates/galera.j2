@@ -7,5 +7,5 @@ wsrep_cluster_name              	= {{ galera_name }}
 wsrep_node_name                 	= {{ ansible_nodename }}
 wsrep_node_address              	= {{ vars['ansible_' + ethernet_interface]['ipv4']['address'] }}
 wsrep_forced_binlog_format      	= ROW
-wsrep_sst_method                	= xtrabackup-v2
+wsrep_sst_method                	= mariabackup
 wsrep_sst_auth                  	= {{ sst_user }}:{{ sst_pass }}
