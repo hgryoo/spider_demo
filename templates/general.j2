@@ -44,9 +44,6 @@ max_allowed_packet              	= 32M
 max_connect_errors              	= 1000000
 log_bin_trust_function_creators 	= ON
 explicit_defaults_for_timestamp 	= ON
-#ssl_ca                          	=
-#ssl_key                         	=
-#ssl_cert                        	=
 
 ################################################################
 # Caches, Buffers & Connections
@@ -69,6 +66,7 @@ max_heap_table_size             	= {{ [(ansible_memtotal_mb/512),16]|max|round|i
 ################################################################
 binlog_format                   	= ROW
 binlog_row_image                	= FULL
+sync_binlog                     	= 0
 log_bin                         	= /var/log/mysql/mariadb-bin
 log_bin_index                   	= /var/log/mysql/mariadb-bin.index
 expire_logs_days                	= 3
@@ -84,13 +82,16 @@ long_query_time                 	= 5
 # InnoDB Variables
 ################################################################
 innodb_file_per_table           	= ON
-innodb_buffer_pool_size         	= {{ (ansible_memtotal_mb/1024 * 0.66)|round|int }}G
-innodb_page_cleaners            	= {{ [[(ansible_memtotal_mb/1024 * 0.66),4]|max,64]|min|round|int }}
+innodb_data_file_path           	= ibdata1:12M:autoextend
+innodb_buffer_pool_size         	= {{ (ansible_memtotal_mb/1024 * 0.75)|round|int }}G
+innodb_buffer_pool_instances    	= {{ [[(ansible_memtotal_mb/1024 * 0.75),8]|max,64]|min|round|int }}
+innodb_page_cleaners            	= {{ [[(ansible_memtotal_mb/1024 * 0.75),8]|max,64]|min|round|int }}
 innodb_flush_log_at_trx_commit  	= 1
-innodb_flush_method             	= O_DIRECT
-innodb_log_files_in_group       	= {{ [[(((ansible_memtotal_mb/1024 * 0.66)/2)+1),2]|max,100]|min|round|int }}
-innodb_log_buffer_size          	= 16M
-innodb_log_file_size            	= 1G
+innodb_flush_method             	= O_DSYNC
+innodb_log_files_in_group       	= 2
+innodb_log_buffer_size          	= 64M
+innodb_log_file_size            	= {{ [[(((ansible_memtotal_mb/1024 * 0.125)/2)),1]|max,15]|min|round|int }}G
+innodb_io_capacity              	= 1000 ### See Note 1 ###
 innodb_autoinc_lock_mode        	= 2
 innodb_rollback_on_timeout      	= ON
 innodb_thread_concurrency       	= {{ (ansible_processor_vcpus * 2) }}
@@ -104,42 +105,6 @@ innodb_defragment               	= ON
 plugin_load                     	= ha_rocksdb.so
 rocksdb_bulk_load               	= 1
 rocksdb_max_row_locks           	= 10000
-
-################################################################
-# MariaDB Optimizer Switches
-################################################################
-optimizer_search_depth          	= 0
-optimizer_switch                	= index_merge=on
-optimizer_switch                	= index_merge_union=on
-optimizer_switch                	= index_merge_sort_union=on
-optimizer_switch                	= index_merge_intersection=on
-optimizer_switch                	= index_merge_sort_intersection=off
-optimizer_switch                	= engine_condition_pushdown=off
-optimizer_switch                	= index_condition_pushdown=on
-optimizer_switch                	= derived_merge=on
-optimizer_switch                	= derived_with_keys=on
-optimizer_switch                	= firstmatch=on
-optimizer_switch                	= loosescan=on
-optimizer_switch                	= materialization=on
-optimizer_switch                	= in_to_exists=on
-optimizer_switch                	= semijoin=on
-optimizer_switch                	= partial_match_rowid_merge=on
-optimizer_switch                	= partial_match_table_scan=on
-optimizer_switch                	= subquery_cache=on
-optimizer_switch                	= mrr=off
-optimizer_switch                	= mrr_cost_based=off
-optimizer_switch                	= mrr_sort_keys=off
-optimizer_switch                	= outer_join_with_cache=on
-optimizer_switch                	= semijoin_with_cache=on
-optimizer_switch                	= join_cache_incremental=on
-optimizer_switch                	= join_cache_hashed=on
-optimizer_switch                	= join_cache_bka=on
-optimizer_switch                	= optimize_join_buffer_size=off
-optimizer_switch                	= table_elimination=on
-optimizer_switch                	= extended_keys=on
-optimizer_switch                	= exists_to_in=on
-optimizer_switch                	= orderby_uses_equalities=on
-optimizer_switch                	= condition_pushdown_for_derived=on
 
 ################################################################
 # MariaDB Audit
@@ -202,12 +167,11 @@ server_audit_events	            	= query_ddl
 {% endfilter %}
 {% endif %}
 
+
 ################################################################
-# XtraBackup Settings
+# Notes
 ################################################################
-[xtrabackup]
-user                            	= {{ sst_user }}
-password                        	= {{ sst_pass }}
-socket                          	= /var/lib/mysql/mysql.sock
+
+### 1. Benchmark your iops before adjusting (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/benchmark_procedures.html)
 {% raw %}
 {% endraw %}

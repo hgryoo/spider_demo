@@ -5,6 +5,4 @@ relay_log_index                 	= /var/log/mysql/mariadb-relay.index
 relay-log-info-file             	= /var/log/mysql/mariadb-relay.info
 report_host                     	= {{ ansible_nodename }}
 slave_parallel_mode             	= conservative
-slave_domain_parallel_threads   	= 2
-slave_parallel_threads          	= 2
 sysdate_is_now                  	= ON
