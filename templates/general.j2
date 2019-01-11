@@ -28,9 +28,11 @@ init_connect                    	= 'SET NAMES utf8'
 user                            	= mysql
 ignore_db_dirs                  	= lost+found
 default_storage_engine          	= InnoDB
-#enforce_storage_engine          	= InnoDB
+#enforce_storage_engine         	= InnoDB
 userstat                        	= ON
-feedback                        	= ON
+sql_mode                        	= "NO_ENGINE_SUBSTITUTION,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER"
+session_track_system_variables  	= "autocommit,character_set_client,character_set_connection,character_set_results,last_gtid,time_zone"
+#default_time_zone              	= "US/Central"
 performance_schema
 event_scheduler
 skip_name_resolve
@@ -116,6 +118,11 @@ server_audit_file_path          	= /var/log/mysql/mariadb-audit.log
 server_audit_events	            	= query_ddl
 
 ################################################################
+# Optimizer Switches
+################################################################
+{% include 'optimizer.j2' %}
+
+################################################################
 # Encryption Settings
 ################################################################
 {% if encryption_on == 'true' %}
@@ -166,7 +173,6 @@ server_audit_events	            	= query_ddl
 {% include 'sst.j2' %}
 {% endfilter %}
 {% endif %}
-
 
 ################################################################
 # Notes
