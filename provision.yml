@@ -16,19 +16,17 @@
       path: /etc/yum.repos.d/mariadb.repo
       state: absent
 
-  - name: "Getting New MariaDB Repos"
-    get_url:
-      url: https://downloads.mariadb.com/MariaDB/mariadb_repo_setup
-      dest: /tmp/mariadb_repo_setup
-
-  - name: "Activating New MariaDB Repos"
-    shell: $(which bash) /tmp/mariadb_repo_setup --mariadb-server-version={{ mariadb_version }} --mariadb-maxscale-version={{ maxscale_version }}
+  - name: "Installing New MariaDB Repo"
+    shell: curl -sS https://downloads.mariadb.com/MariaDB/mariadb_repo_setup | sudo bash -s -- --mariadb-server-version={{ mariadb_version }} --mariadb-maxscale-version={{ maxscale_version }}
+    args:
+      warn: False
 
   - name: "Installing Additional Packages"
     yum:
-      name={{ item }}
-      state=present
-    with_items:
+      name: "{{ packages }}"
+      state: present
+    vars:
+      packages:
       - epel-release
       - nano
       - MySQL-python
@@ -40,9 +38,10 @@
 
   - name: "Installing MariaDB Items"
     yum:
-      name={{ item }}
-      state=present
-    with_items:
+      name: "{{ packages }}"
+      state: present
+    vars:
+      packages:
       - MariaDB-server
       - MariaDB-client
       - MariaDB-rocksdb-engine
