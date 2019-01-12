@@ -3,11 +3,6 @@
 
 Vagrant.configure("2") do |config|
 	4.times do |n|
-		config.vbguest.iso_path = "/Applications/VirtualBox.app/Contents/MacOS/VBoxGuestAdditions.iso"
-		config.vbguest.auto_update = false
-		config.ssh.insert_key = true
-		config.ssh.username = 'vagrant'
-		config.ssh.password = 'vagrant'
 		config.vm.define "node"+(1+n).to_s do |cc|
     			cc.vm.host_name = "node" + (1+n).to_s
     			cc.vm.network :private_network, ip: "10.10.10.1" + n.to_s
