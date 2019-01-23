@@ -4,6 +4,10 @@ SELECT * FROM mysql.servers;
 # show spider_tables
 SELECT table_name FROM mysql.spider_tables;
 
+DROP TABLE test1;
+DROP TABLE test2;
+DROP TABLE test3;
+
 # Partition by Key
 CREATE TABLE test1
 (
@@ -90,6 +94,31 @@ INSERT INTO `test3` VALUES (7,'A');
 INSERT INTO `test3` VALUES (8,'B');
 INSERT INTO `test3` VALUES (9,'C');
 
+# Partition by Hash
+CREATE TABLE `test4`
+(
+  id int,
+  c char(120) NOT NULL,
+  PRIMARY KEY (id)
+) ENGINE=spider COMMENT='wrapper "mysql", table "test4"'
+ PARTITION BY HASH (id) 
+(
+ PARTITION pt1 COMMENT = 'srv "backend1"',
+ PARTITION pt2 COMMENT = 'srv "backend2"'
+);
+
+
+CREATE TABLE `test5`
+(
+  id int,
+  c char(120) NOT NULL,
+  PRIMARY KEY (id, c)
+) ENGINE=spider COMMENT='wrapper "mysql", table "test5"'
+ PARTITION BY list columns (c)
+(
+ PARTITION pt1 COMMENT = 'srv "backend1"',
+ PARTITION pt2 COMMENT = 'srv "backend2"'
+);
 
 SPIDER_DIRECT_SQL('SELECT * FROM test3;', '', 'srv "backend1", port "8607"')
 

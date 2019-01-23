@@ -1,3 +1,7 @@
+DROP TABLE test1;
+DROP TABLE test2;
+DROP TABLE test3;
+
 # Partition by Key
 CREATE TABLE test1
 (
@@ -20,6 +24,22 @@ CREATE TABLE test3
   c char(120) NOT NULL,
   PRIMARY KEY (id, c)
 ) ENGINE=innodb;
+
+CREATE TABLE test4
+(
+  id int,
+  c char(120) NOT NULL,
+  PRIMARY KEY (id)
+) ENGINE=innodb;
+
+
+CREATE TABLE test5
+(
+  id int,
+  c char(120) NOT NULL,
+  PRIMARY KEY (id, c)
+) ENGINE=innodb;
+
 
 CREATE server IF NOT EXISTS frontend foreign data wrapper mysql options
 (host '10.10.10.10', database 'world', user 'dba', password 'demo_password', port 3306);
